@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title></title>
+    <script src="../../../ztxt/js/jquery.min.js"></script>
+    <script src="../jquery.grab.js"></script>
+    <script>
+      $(function(){
+        
+        var reminder = $("#reminder");
+        
+        // https://gist.github.com/1308368
+        function uuid(a, b) {
+          for (b = a = ''; a++ < 36; b += a * 51 & 52 ? (a ^ 15 ? 8 ^ Math.random() * (a ^ 20 ? 16 : 4) : 4).toString(16) : '-');
+          return b;
+        }
+        
+        function TodaysReminders(){
+          this.elem = $("#todays-reminders").grab(this);
+          
+          this.reminderData = [];
+          
+          if (localStorage.todaysReminders){
+            this.reminderData = JSON.parse(localStorage.todaysReminders); 
+            for (var i = 0; i < this.reminderData.length; i++){
+              new Reminder(this.reminderData[i]).elem.prependTo(this.reminders);
+            }
+          }
+          
+          this.updateTime();
+          setInterval($.proxy(this.updateTime, this), 60000);
+          
+          this.form = new Reminder({
+            text : "", 
+            hour : this.hour.text() , 
+            minute : this.minute.text(), 
+            ampm : this.ampm.text()
+          });
+          
+          this.form.ex.remove();
+          this.reminderForm.append(this.form.elem);
+          this.form.reminderForm.submit($.proxy(this.addReminder, this));
+        }
+        TodaysReminders.prototype = {
+          constructor : TodaysReminders, 
+          save : function(){
+            localStorage.todaysReminders = JSON.stringify(this.reminderData); 
+          },
+          addReminder : function(e){
+            e.preventDefault();
+            var value = $.trim(this.form.text.val());
+            if (value.length > 0){
+              var reminder = new Reminder({
+                text : value, 
+                hour : this.form.hours.val(), 
+                minute : this.form.minutes.val(),
+                ampm : this.form.ampm.val()
+              });
+              this.reminderData.push(reminder.json);
+              this.reminders.prepend(reminder.elem);
+              this.form.text.val("");
+              this.save();
+            }
+          }, 
+          updateTime : function(){
+            var date = new Date();
+            var hours = date.getHours();
+            if (hours > 12) hours -= 12; 
+            if (hours > 11){
+              this.ampm.text("pm");
+            }else{
+              this.ampm.text("am");
+            }
+            this.hour.text(date.getHours());
+            this.minute.text(date.getMinutes());
+          }, 
+          updateReminder : function(json){
+            var id = json.id;
+            for (var i = 0; i < this.reminderData.length; i++) {
+              if (this.reminderData[i].id == id) {
+                this.reminderData[i] = json;
+                this.save();
+                break;
+              }
+            }
+          },
+          removeReminder : function(id){
+            for (var i = 0; i < this.reminderData.length; i++) {
+              if (this.reminderData[i].id == id) {
+                this.reminderData.splice(i, 1);
+                this.save();
+                break;
+              }
+            }
+          }
+        };
+        
+        function Reminder(params){
+          params.id = uuid();
+          this.json = params;
+          
+          this.elem = reminder.grab(this); 
+          this.text.val(params.text);
+          
+          this.hour.detach();
+          for (var i = 1; i <=12; i++){
+            var hour = this.hour.clone();
+            hour.text(i).val(i);
+            this.hours.append(hour);
+          }
+          
+          this.minute.detach();
+          for (var i = 0; i < 60; i++){
+            var minute = this.minute.clone();
+            if (i < 10) i = "0" + i;
+            minute.text(i).val(i);
+            this.minutes.append(minute);
+          }
+          
+          this.hours.val(params.hour);
+          this.minutes.val(params.minute);
+          this.ampm.val(params.ampm);
+          
+          this.ex.click($.proxy(this.remove, this));
+          this.reminderForm.submit(this.prevent);
+          this.elem.find("select, input").change( $.proxy(this.change, this));
+        }
+        Reminder.prototype = {
+          constructor : Reminder, 
+          prevent :function(e){
+            e.preventDefault();
+          },
+          change : function(e){
+            var id = this.json.id;
+            this.json = {
+              id : id, 
+              text : this.text.val(),
+              hour : this.hours.val(), 
+              minute : this.minutes.val(), 
+              ampm : this.ampm.val()
+            };
+            todaysReminders.updateReminder(this.json);
+          }, 
+          remove : function(e){
+            this.elem.remove(); 
+            todaysReminders.removeReminder(this.json.id);
+          }
+        };
+        
+        var todaysReminders = new TodaysReminders();
+        
+      });
+    </script>
+    <style>
+      input{
+        width : 200px; 
+      }
+      .reminder{
+        overflow : hidden;
+        margin-bottom : 10px;
+      }
+      
+      .reminder form{
+        float : left;
+      }
+      .reminder button{
+        float : left;
+        margin-left : 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="todays-reminders">
+      <h2>Today's Reminders</h2>
+      <p>it's 
+        <span>{{hour}}</span>:<span>{{minute}}</span><span>{{ampm}}</span>
+        on <span>/some day/</span>
+      </p>
+      <div>{{reminderForm}}</div>
+      
+      <hr/>
+      <div>{{reminders}}</div>
+    </div>
+    
+    <script id="reminder" type="text/html">
+      <div class="reminder">
+        <form data-grab="reminderForm">
+          <input type="text" data-grab="text" placeholder="reminder"/>
+          @
+          <select data-grab="hours">
+            <option data-grab="hour" value=""></option>
+          </select> : 
+          <select data-grab="minutes">
+            <option data-grab="minute" value=""></option>
+          </select>
+          <select data-grab="ampm">
+            <option value="am">am</option>
+            <option value="pm">pm</option>
+          </select>
+        </form>
+        <button data-grab="ex">X</button>
+      </div>
+      
+    </script>
+    
+  </body>
+</html>

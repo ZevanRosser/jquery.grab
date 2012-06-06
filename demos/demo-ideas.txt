@@ -1,0 +1,12 @@
+something that uses mustache and grab at the same time
+
+something with a lot of settings - single panel
+
+find a json api ... dicitonary or something
+
+quiz thing x
+
+feedback thing
+
+
+

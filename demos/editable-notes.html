@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title></title>
+    <script src="http://code.jquery.com/jquery-latest.min.js"></script>
+    <script src="../jquery.grab.js"></script>
+    <script>
+      $(function(){
+        
+        var note = $("#note");
+        var topUI = new TopUI();
+        
+        function TopUI(){
+          var self = this;
+          $("#top-ui").grab(self); 
+          
+          this.addNote.submit(function(e){
+            e.preventDefault();
+            var value = $.trim(self.noteValue.val());
+            if (value.length > 0){
+              var note = new Note(value);
+              note.elem.appendTo(self.notes);
+              self.noteValue.val("");
+            }
+          });
+        }
+        
+        function Note(value){
+          this.elem = note.grab(this);
+          
+          this.editable.hide();
+          this.noteValue.val(value);
+          
+          this.text.text(value).click($.proxy(this.edit, this));
+          this.ex.click($.proxy(this.remove, this));
+          this.editNote.submit($.proxy(this.changeNote, this));
+        }
+        Note.prototype = {
+          constructor : Note, 
+          changeNote : function(e){
+            e.preventDefault();
+            this.text.text(this.noteValue.val());
+            this.editable.hide();
+            this.normal.show();
+          },
+          edit : function(){
+            this.editable.show();
+            this.normal.hide(); 
+          },
+          remove : function(){
+            this.elem.remove();
+          }
+        };
+        
+      });
+    </script>
+    <style>
+      .note{
+        width : 300px;
+        border : 1px solid #ccc;
+        padding : 4px; 
+        margin : 4px;
+        overflow : hidden;
+      }
+      .note button{
+        float : right; 
+      }
+      .note span{
+        cursor : pointer; 
+      }
+    </style>
+  </head>
+  <body>
+    
+    <div id="top-ui">
+      <h2>Notes</h2>
+      <p>click note text to edit</p>
+      <form data-grab="addNote">
+        <input type="text" data-grab="noteValue" placeholder="note text"/>
+        <button>add</button>
+      </form>
+      <div data-grab="notes"></div>
+    </div>
+    
+    <script id="note" type="text/html">
+      <div class="note">
+        <div data-grab="normal">
+          <span>{{text}}</span>
+          <button data-grab="ex">X</button>
+        </div>
+        <div data-grab="editable">
+          <form data-grab="editNote">
+            <input type="text" data-grab="noteValue"/>
+            <button>ok</button>
+          </form>
+        </div>
+      </div>
+    </script>
+    
+  </body>
+</html>

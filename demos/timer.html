@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title></title>
+    <script src="http://code.jquery.com/jquery-latest.min.js"></script>
+    <script src="../jquery.grab.js"></script>
+    <script>
+      $(function(){
+ 
+        var timer = $("#timer");
+        
+        function Timer(){
+          this.elem = timer.grab(this).appendTo("body");
+          this.timer.css({
+            backgroundColor : "red",
+            fontSize : Math.random() * 60 + 10
+          });
+          this.update();
+          setInterval($.proxy(this.update, this), 1000);
+        };
+        Timer.prototype.update = function(){
+          var date = new Date();
+          this.hours.text(date.getHours());
+          this.minutes.text(date.getMinutes());
+          this.seconds.text(date.getSeconds());
+        };
+        
+        for (var i = 0; i < 10; i++){
+          new Timer();
+        }
+        
+      });
+    </script>
+    <style>
+    </style>
+  </head>
+  <body>
+    <script id="timer" type="text/html">
+      <div data-grab="timer">
+        <span>{{hours}}</span>:<span>{{minutes}}</span>:<span>{{seconds}}</span>
+      </div>
+    </script>
+  </body>
+</html>

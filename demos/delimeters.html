@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title></title>
+    <script src="../../../ztxt/js/jquery.min.js"></script>
+    <script src="../jquery.grab.js"></script>
+    <script>
+     $(function(){
+      
+       $.grab.delimeters("~","~");
+       
+       function Title(txt){
+         $("#title").grab(this, {
+           title : txt
+         }).appendTo("body");
+       }
+       
+       var title = new Title("This is the title");
+       
+
+     });
+    </script>
+    <style>
+    </style>
+  </head>
+  <body>
+    <script id="title" type="text/html">
+      <h1>~title~</h1>
+    </script>
+  </body>
+</html>
